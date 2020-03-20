@@ -6,6 +6,6 @@ import (
 	_ "github.com/Eun/go-test-buckets"
 )
 
-// run with go test -v ./... -exclude-packages=github.com/Eun/go-test-buckets/example/test/exclude
+// run with EXCLUDE_PACKAGES=github.com/Eun/go-test-buckets/example/test/exclude go test -count=1 -v ./...
 func TestExclude(t *testing.T) {
 }

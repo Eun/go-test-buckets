@@ -1,4 +1,4 @@
-package test
+package bucket
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	_ "github.com/Eun/go-test-buckets"
 )
 
-// run with go test -v ./... -bucket=0 -total-buckets=2
+// run with BUCKET=0 TOTAL_BUCKETS=2 go test -count=1 -v ./...
 // will run TestA and TestB
 
-// run with go test -v ./... -bucket=1 -total-buckets=2
+// run with BUCKET=1 TOTAL_BUCKETS=2 go test -count=1 -v ./...
 // will run TestC
 
 func TestA(t *testing.T) {

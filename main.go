@@ -1,7 +1,6 @@
 package buckets
 
 import (
-	"flag"
 	"math"
 	"reflect"
 	"testing"
@@ -15,19 +14,47 @@ import (
 
 	"path/filepath"
 
+	"os"
+
+	"strconv"
+
 	"bou.ke/monkey"
 )
 
-var bucketIndex = flag.Int("bucket", 0, "bucket index to use")
-var bucketCount = flag.Int("total-buckets", 0, "total bucket count")
-var directoriesToExclude = flag.String("exclude-directories", "", "directories to exclude in tests (coma separated list)")
-var packagesToExclude = flag.String("exclude-packages", "", "packages to exclude in tests (coma separated list)")
+var bucketIndex *int
+var bucketCount *int
+var directoriesToExclude *string
+var packagesToExclude *string
 
 var directoriesToExcludeList []string
 var packagesToExcludeList []string
 
 func init() {
-	flag.Parse()
+	if v := os.Getenv("BUCKET"); v != "" {
+		n, err := strconv.ParseInt(v, 0, 64)
+		if err != nil {
+			panic(fmt.Sprintf("unable to parse BUCKET %s: %v", v, err))
+		}
+		i := int(n)
+		bucketIndex = &i
+	}
+
+	if v := os.Getenv("TOTAL_BUCKETS"); v != "" {
+		n, err := strconv.ParseInt(v, 0, 64)
+		if err != nil {
+			panic(fmt.Sprintf("unable to parse BUCKET_COUNT %s: %v", v, err))
+		}
+		i := int(n)
+		bucketCount = &i
+	}
+
+	if v := os.Getenv("EXCLUDE_DIRECTORIES"); v != "" {
+		directoriesToExclude = &v
+	}
+
+	if v := os.Getenv("EXCLUDE_PACKAGES"); v != "" {
+		directoriesToExclude = &v
+	}
 
 	if directoriesToExclude != nil {
 		directoriesToExcludeList = strings.FieldsFunc(*directoriesToExclude, func(r rune) bool {

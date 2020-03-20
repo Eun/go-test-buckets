@@ -12,10 +12,10 @@ import (
 	_ "github.com/Eun/go-test-buckets"
 )
 
-// run with go test -v ./... -bucket=0 -total-buckets=2
+// run with BUCKET=0 TOTAL_BUCKETS=2 go test -count=1 -v ./...
 // will run TestA and TestB
 
-// run with go test -v ./... -bucket=1 -total-buckets=2
+// run with BUCKET=1 TOTAL_BUCKETS=2 go test -count=1 -v ./...
 // will run TestC
 
 func TestA(t *testing.T) {
@@ -30,8 +30,8 @@ func TestC(t *testing.T) {
 
 ## Excluding Packages/Directories
 1. Add to your imports `_ "github.com/Eun/go-test-buckets"`
-2. Run `go test -v ./... -exclude-packages=package/path/to/exclude,package/path/to/exclude-2`
-3. Or `go test -v ./... -exclude-directories=/full/path/to/exclude`
+2. Run `EXCLUDE_PACKAGES=package/path/to/exclude,package/path/to/exclude-2 go test -count=1 -v ./...`
+3. Or `EXCLUDE_DIRECTORIES=/full/path/to/exclude go test -count=1 -v ./...`
 
 
 
