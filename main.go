@@ -1,3 +1,4 @@
+// Package buckets provides a way to separate go tests into buckets.
 package buckets
 
 import (
@@ -18,7 +19,7 @@ import (
 
 	"strconv"
 
-	"bou.ke/monkey"
+	"github.com/agiledragon/gomonkey/v2"
 )
 
 var bucketIndex *int
@@ -29,6 +30,7 @@ var packagesToExclude *string
 var directoriesToExcludeList []string
 var packagesToExcludeList []string
 
+//nolint:gochecknoinits // init function is needed to patch functions
 func init() {
 	if v := os.Getenv("BUCKET"); v != "" {
 		n, err := strconv.ParseInt(v, 0, 64)
@@ -190,14 +192,14 @@ func filterTests(tests *[]testing.InternalTest) {
 }
 
 func patchTestRun() {
-	var guard *monkey.PatchGuard
-	guard = monkey.PatchInstanceMethod(reflect.TypeOf(&testing.M{}), "Run", func(m *testing.M) int {
-		guard.Unpatch()
-		defer guard.Restore()
+	var patches *gomonkey.Patches
+	patches = gomonkey.ApplyMethod(reflect.TypeOf(&testing.M{}), "Run", func(m *testing.M) int {
+		patches.Reset()
+		defer patchTestRun()
 
 		v := reflect.ValueOf(m).Elem()
 		testsField := v.FieldByName("tests")
-		ptr := unsafe.Pointer(testsField.UnsafeAddr())
+		ptr := unsafe.Pointer(testsField.UnsafeAddr()) //nolint:gosec
 		filterTests((*[]testing.InternalTest)(ptr))
 		return m.Run()
 	})
