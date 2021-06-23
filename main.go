@@ -14,17 +14,15 @@ import (
 	"unsafe"
 )
 
-var bucketIndex *int
-var bucketCount *int
-var directoriesToExclude *string
-var packagesToExclude *string
-
-var directoriesToExcludeList []string
-var packagesToExcludeList []string
-
 // Buckets must be called to get the test bucket feature working.
 // It will modify the tests present in the testing.M struct.
 func Buckets(m *testing.M) {
+	var bucketIndex *int
+	var bucketCount *int
+
+	var directoriesToExclude []string
+	var packagesToExclude []string
+
 	if v := os.Getenv("BUCKET"); v != "" {
 		//nolint: gomnd // use 64 bits for parsing
 		n, err := strconv.ParseInt(v, 0, 64)
@@ -46,28 +44,21 @@ func Buckets(m *testing.M) {
 	}
 
 	if v := os.Getenv("EXCLUDE_DIRECTORIES"); v != "" {
-		directoriesToExclude = &v
+		directoriesToExclude = strings.FieldsFunc(v, func(r rune) bool {
+			return r == ',' || r == ';'
+		})
+		for i := range directoriesToExclude {
+			directoriesToExclude[i] = filepath.ToSlash(directoriesToExclude[i])
+		}
 	}
 
 	if v := os.Getenv("EXCLUDE_PACKAGES"); v != "" {
-		packagesToExclude = &v
-	}
-
-	if directoriesToExclude != nil {
-		directoriesToExcludeList = strings.FieldsFunc(*directoriesToExclude, func(r rune) bool {
-			return r == ',' || r == ';'
-		})
-		for i := range directoriesToExcludeList {
-			directoriesToExcludeList[i] = filepath.ToSlash(directoriesToExcludeList[i])
-		}
-	}
-	if packagesToExclude != nil {
-		packagesToExcludeList = strings.FieldsFunc(*packagesToExclude, func(r rune) bool {
+		packagesToExclude = strings.FieldsFunc(v, func(r rune) bool {
 			return r == ',' || r == ';'
 		})
 	}
 
-	if !isBucketFeatureEnabled() && !isDirectoriesToExcludeEnabled() && !isPackagesToExcludeEnabled() {
+	if bucketIndex == nil && bucketCount == nil && len(directoriesToExclude) == 0 && len(packagesToExclude) == 0 {
 		return
 	}
 
@@ -75,25 +66,7 @@ func Buckets(m *testing.M) {
 	testsField := v.FieldByName("tests")
 	//nolint: gosec // allow the usage of unsafe so we can get the test slice.
 	ptr := unsafe.Pointer(testsField.UnsafeAddr())
-	filterTests((*[]testing.InternalTest)(ptr))
-}
-func isBucketFeatureEnabled() bool {
-	if bucketCount == nil || bucketIndex == nil {
-		return false
-	}
-
-	if *bucketCount <= 0 || *bucketIndex < 0 || *bucketIndex >= *bucketCount {
-		return false
-	}
-	return true
-}
-
-func isDirectoriesToExcludeEnabled() bool {
-	return len(directoriesToExcludeList) > 0
-}
-
-func isPackagesToExcludeEnabled() bool {
-	return len(packagesToExcludeList) > 0
+	filterTests((*[]testing.InternalTest)(ptr), *bucketIndex, *bucketCount, directoriesToExclude, packagesToExclude)
 }
 
 func getSourceFile(f func(*testing.T)) string {
@@ -153,8 +126,8 @@ dirLoop:
 	return false
 }
 
-func filterTests(tests *[]testing.InternalTest) {
-	if isDirectoriesToExcludeEnabled() {
+func filterTests(tests *[]testing.InternalTest, bucketIndex, bucketCount int, directoriesToExcludeList []string, packagesToExcludeList []string) {
+	if len(directoriesToExcludeList) > 0 {
 		for i := len(*tests) - 1; i >= 0; i-- {
 			file := getSourceFile((*tests)[i].F)
 			if file == "" {
@@ -167,7 +140,7 @@ func filterTests(tests *[]testing.InternalTest) {
 			}
 		}
 	}
-	if isPackagesToExcludeEnabled() {
+	if len(packagesToExcludeList) > 0 {
 		for i := len(*tests) - 1; i >= 0; i-- {
 			pkg := getPackageName((*tests)[i].F)
 			if pkg == "" {
@@ -179,13 +152,14 @@ func filterTests(tests *[]testing.InternalTest) {
 			}
 		}
 	}
-	if isBucketFeatureEnabled() {
-		perBucket := int(math.Ceil(float64(len(*tests)) / float64(*bucketCount)))
 
-		from := *bucketIndex * perBucket
+	if bucketCount > 0 && bucketIndex >= 0 && bucketIndex < bucketCount {
+		perBucket := int(math.Ceil(float64(len(*tests)) / float64(bucketCount)))
+
+		from := bucketIndex * perBucket
 		to := from + perBucket
 
-		if to > len(*tests) {
+		if to > len(*tests)-1 {
 			to = len(*tests)
 		}
 

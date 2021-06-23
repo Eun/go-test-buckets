@@ -163,3 +163,77 @@ func subTest(t *testing.T, env []string, coverProfile, packageName string, testS
 		}
 	}
 }
+
+func Test_filterTestsBuckets(t *testing.T) {
+	testCases := []struct {
+		name        string
+		testCount   int
+		bucketCount int
+		buckets     []int
+	}{
+		{
+			"1/1",
+			1,
+			1,
+			[]int{1},
+		},
+		{
+			"1/2",
+			1,
+			2,
+			[]int{1, 0},
+		},
+		{
+			"3/2",
+			3,
+			2,
+			[]int{2, 1},
+		},
+		{
+			"4/2",
+			4,
+			2,
+			[]int{2, 2},
+		},
+		{
+			"5/2",
+			5,
+			2,
+			[]int{3, 2},
+		},
+		{
+			"11/3",
+			11,
+			3,
+			[]int{4, 4, 3},
+		},
+		{
+			"12/3",
+			12,
+			3,
+			[]int{4, 4, 4},
+		},
+		{
+			"13/3",
+			13,
+			3,
+			[]int{5, 5, 3},
+		},
+	}
+	for _, tt := range testCases {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			for i := 0; i < tt.bucketCount; i++ {
+				tests := make([]testing.InternalTest, tt.testCount)
+				for j := 0; j < tt.testCount; j++ {
+					tests[j].Name = fmt.Sprintf("Test%d", j)
+				}
+				filterTests(&tests, i, tt.bucketCount, nil, nil)
+
+				if tt.buckets[i] != len(tests) {
+					t.Fatalf("expected %d tests in bucket %d but got %d", tt.buckets[i], i, len(tests))
+				}
+			}
+		})
+	}
+}
