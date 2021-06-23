@@ -54,7 +54,7 @@ jobs:
         name: Test
         working-directory: /example/test/exclude/directory/
         env:
-          EXCLUDE_DIRECTORIES=${{github.workspace}}/example/test/exclude/directory/should_be_ignored
+          EXCLUDE_DIRECTORIES: ${{github.workspace}}/example/test/exclude/directory/should_be_ignored
         run: go test -count=1 -v ./...
 
   # run golang test suite and collect their coverage.
