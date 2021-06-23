@@ -22,6 +22,8 @@ var packagesToExclude *string
 var directoriesToExcludeList []string
 var packagesToExcludeList []string
 
+// Buckets must be called to get the test bucket feature working.
+// It will modify the tests present in the testing.M struct.
 func Buckets(m *testing.M) {
 	if v := os.Getenv("BUCKET"); v != "" {
 		//nolint: gomnd // use 64 bits for parsing
@@ -68,7 +70,7 @@ func Buckets(m *testing.M) {
 
 	v := reflect.ValueOf(m).Elem()
 	testsField := v.FieldByName("tests")
-	//nolint: gosec // allow the useage of unsafe so we can get the test slice.
+	//nolint: gosec // allow the usage of unsafe so we can get the test slice.
 	ptr := unsafe.Pointer(testsField.UnsafeAddr())
 	filterTests((*[]testing.InternalTest)(ptr))
 }
