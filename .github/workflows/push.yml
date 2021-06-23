@@ -52,10 +52,9 @@ jobs:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       -
         name: Test
-        working-directory: /example/test/exclude/directory/
         env:
           EXCLUDE_DIRECTORIES: ${{github.workspace}}\example\test\exclude\directory\should_be_ignored
-        run: go test -count=1 -v ./...
+        run: go test -count=1 -v ./example/test/exclude/directory/...
 
 
   # draft your next release notes as pull requests are merged into "master"
