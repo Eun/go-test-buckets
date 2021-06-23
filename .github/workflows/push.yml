@@ -34,6 +34,29 @@ jobs:
         name: nancy
         run: go list -json -m all | docker run -i sonatypecommunity/nancy:latest
 
+  # temp-test
+  temp-test:
+    runs-on: windows-latest
+    steps:
+      -
+        name: Checkout code
+        uses: actions/checkout@v2.3.4
+      -
+        name: Get go.mod details
+        uses: Eun/go-mod-details@v1.0.4
+        id: go-mod-details
+      -
+        name: Install Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ steps.go-mod-details.outputs.go_version }}
+      -
+        name: Test
+        working-directory: /example/test/exclude/directory/
+        env:
+          EXCLUDE_DIRECTORIES=${{github.workspace}}/example/test/exclude/directory/should_be_ignored
+        run: go test -count=1 -v ./...
+
   # run golang test suite and collect their coverage.
   test:
     strategy:
