@@ -1,0 +1,134 @@
+# this workflow will run on all pushes.
+on:
+  push:
+
+name: "push"
+jobs:
+  # run golangci-lint to lint the golang source code.
+  # the configuration is at /.golangci.yml.
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v2.3.4
+      -
+        name: lint
+        uses: golangci/golangci-lint-action@v2.5.2
+        with:
+          version: latest
+          # optional: show only new issues if it's a pull request. The default value is `false`.
+          # only-new-issues: true
+
+  # use nancy to scan for vulnerabilities.
+  vulnerability_scanner:
+    name: Vulnerability scanner
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v2.3.4
+      -
+        uses: actions/setup-go@v2
+      # we cannot use nancy-github-action because it is outdated, so it's better to use the latest
+      # docker image for the validation
+      -
+        name: nancy
+        run: go list -json -m all | docker run -i sonatypecommunity/nancy:latest
+
+  # run golang test suite and collect their coverage.
+  test:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      -
+        name: Checkout code
+        uses: actions/checkout@v2.3.4
+      -
+        name: Get go.mod details
+        uses: Eun/go-mod-details@v1.0.4
+        id: go-mod-details
+      -
+        name: Install Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ steps.go-mod-details.outputs.go_version }}
+      -
+        name: Test Bucket
+        env:
+          BUCKET: 0
+          TOTAL_BUCKETS: 2
+          TEST_SHOULD_RUN: "TestA;TestA/TestA1;TestA/TestA2;TestB;TestB/TestB1"
+          TEST_SHOULD_NOT_RUN: "TestC;TestC/TestC1"
+        run: ./github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
+      -
+        name: Test Bucket
+        env:
+          BUCKET: 1
+          TOTAL_BUCKETS: 2
+          TEST_SHOULD_RUN: "TestC;TestC/TestC1"
+          TEST_SHOULD_NOT_RUN: "TestA;TestA/TestA1;TestA/TestA2;TestB;TestB/TestB1"
+        run: ./github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
+      -
+        name: Test Exclude Package
+        env:
+          EXCLUDE_PACKAGES: github.com/Eun/go-test-buckets/example/test/exclude
+          TEST_SHOULD_RUN: "TestSomething"
+          TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
+        run: ./github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
+      -
+        name: Test Exclude Directory
+        env:
+          EXCLUDE_DIRECTORIES: ${{.env.GITHUB_WORKSPACE}}/example/test/exclude/directory
+          TEST_SHOULD_RUN: "TestSomething"
+          TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
+        run: ./github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory ./example/test/exclude/directory
+      -
+        name: Send coverage (Bucket 1)
+        uses: shogo82148/actions-goveralls@v1.4.4
+        with:
+          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1.cov
+          flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1
+          parallel: true
+      -
+        name: Send coverage (Bucket 2)
+        uses: shogo82148/actions-goveralls@v1.4.4
+        with:
+          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket2.cov
+          flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket2
+          parallel: true
+      -
+        name: Send coverage (Exclude Package)
+        uses: shogo82148/actions-goveralls@v1.4.4
+        with:
+          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package.cov
+          flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package
+          parallel: true
+      -
+        name: Send coverage (Exclude Directory)
+        uses: shogo82148/actions-goveralls@v1.4.4
+        with:
+          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory.cov
+          flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory
+          parallel: true
+
+  # notifies that all test jobs are finished.
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shogo82148/actions-goveralls@v1.4.4
+        with:
+          parallel-finished: true
+
+  # draft your next release notes as pull requests are merged into "master"
+  # the configuration is at /.github/release-drafter.yml.
+  update_release_draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        if: github.ref == 'refs/heads/master'
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

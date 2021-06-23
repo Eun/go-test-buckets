@@ -2,24 +2,16 @@
 package buckets
 
 import (
+	"fmt"
 	"math"
+	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 	"unsafe"
-
-	"strings"
-
-	"fmt"
-
-	"runtime"
-
-	"path/filepath"
-
-	"os"
-
-	"strconv"
-
-	"github.com/agiledragon/gomonkey/v2"
 )
 
 var bucketIndex *int
@@ -30,8 +22,7 @@ var packagesToExclude *string
 var directoriesToExcludeList []string
 var packagesToExcludeList []string
 
-//nolint:gochecknoinits // init function is needed to patch functions
-func init() {
+func Buckets(m *testing.M) {
 	if v := os.Getenv("BUCKET"); v != "" {
 		n, err := strconv.ParseInt(v, 0, 64)
 		if err != nil {
@@ -55,7 +46,7 @@ func init() {
 	}
 
 	if v := os.Getenv("EXCLUDE_PACKAGES"); v != "" {
-		directoriesToExclude = &v
+		packagesToExclude = &v
 	}
 
 	if directoriesToExclude != nil {
@@ -73,9 +64,11 @@ func init() {
 		return
 	}
 
-	patchTestRun()
+	v := reflect.ValueOf(m).Elem()
+	testsField := v.FieldByName("tests")
+	ptr := unsafe.Pointer(testsField.UnsafeAddr())
+	filterTests((*[]testing.InternalTest)(ptr))
 }
-
 func isBucketFeatureEnabled() bool {
 	if bucketCount == nil || bucketIndex == nil {
 		return false
@@ -189,18 +182,4 @@ func filterTests(tests *[]testing.InternalTest) {
 
 		*tests = (*tests)[from:to]
 	}
-}
-
-func patchTestRun() {
-	var patches *gomonkey.Patches
-	patches = gomonkey.ApplyMethod(reflect.TypeOf(&testing.M{}), "Run", func(m *testing.M) int {
-		patches.Reset()
-		defer patchTestRun()
-
-		v := reflect.ValueOf(m).Elem()
-		testsField := v.FieldByName("tests")
-		ptr := unsafe.Pointer(testsField.UnsafeAddr()) //nolint:gosec
-		filterTests((*[]testing.InternalTest)(ptr))
-		return m.Run()
-	})
 }
