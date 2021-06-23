@@ -57,6 +57,9 @@ func Buckets(m *testing.M) {
 		directoriesToExcludeList = strings.FieldsFunc(*directoriesToExclude, func(r rune) bool {
 			return r == ',' || r == ';'
 		})
+		for i := range directoriesToExcludeList {
+			directoriesToExcludeList[i] = filepath.ToSlash(directoriesToExcludeList[i])
+		}
 	}
 	if packagesToExclude != nil {
 		packagesToExcludeList = strings.FieldsFunc(*packagesToExclude, func(r rune) bool {
@@ -158,11 +161,8 @@ func filterTests(tests *[]testing.InternalTest) {
 				fmt.Printf("unable to find source of %s\n", (*tests)[i].Name)
 				continue
 			}
-			fmt.Println(file)
-			fmt.Printf("%+v\n", directoriesToExcludeList)
-			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-			if isFileInDir(file, directoriesToExcludeList...) {
+			if isFileInDir(filepath.ToSlash(file), directoriesToExcludeList...) {
 				*tests = append((*tests)[:i], (*tests)[i+1:]...)
 			}
 		}
