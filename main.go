@@ -24,6 +24,7 @@ var packagesToExcludeList []string
 
 func Buckets(m *testing.M) {
 	if v := os.Getenv("BUCKET"); v != "" {
+		//nolint: gomnd // use 64 bits for parsing
 		n, err := strconv.ParseInt(v, 0, 64)
 		if err != nil {
 			panic(fmt.Sprintf("unable to parse BUCKET %s: %v", v, err))
@@ -33,6 +34,7 @@ func Buckets(m *testing.M) {
 	}
 
 	if v := os.Getenv("TOTAL_BUCKETS"); v != "" {
+		//nolint: gomnd // use 64 bits for parsing
 		n, err := strconv.ParseInt(v, 0, 64)
 		if err != nil {
 			panic(fmt.Sprintf("unable to parse BUCKET_COUNT %s: %v", v, err))
@@ -66,6 +68,7 @@ func Buckets(m *testing.M) {
 
 	v := reflect.ValueOf(m).Elem()
 	testsField := v.FieldByName("tests")
+	//nolint: gosec // allow the useage of unsafe so we can get the test slice.
 	ptr := unsafe.Pointer(testsField.UnsafeAddr())
 	filterTests((*[]testing.InternalTest)(ptr))
 }

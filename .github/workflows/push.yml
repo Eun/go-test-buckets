@@ -60,7 +60,7 @@ jobs:
           TOTAL_BUCKETS: 2
           TEST_SHOULD_RUN: "TestA;TestA/TestA1;TestA/TestA2;TestB;TestB/TestB1"
           TEST_SHOULD_NOT_RUN: "TestC;TestC/TestC1"
-        run: ${{ env.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
+        run: ${{ github.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
       -
         name: Test Bucket
         env:
@@ -68,21 +68,21 @@ jobs:
           TOTAL_BUCKETS: 2
           TEST_SHOULD_RUN: "TestC;TestC/TestC1"
           TEST_SHOULD_NOT_RUN: "TestA;TestA/TestA1;TestA/TestA2;TestB;TestB/TestB1"
-        run: ${{ env.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
+        run: ${{ github.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
       -
         name: Test Exclude Package
         env:
           EXCLUDE_PACKAGES: github.com/Eun/go-test-buckets/example/test/exclude
           TEST_SHOULD_RUN: "TestSomething"
           TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
-        run: ${{ env.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
+        run: ${{ github.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
       -
         name: Test Exclude Directory
         env:
-          EXCLUDE_DIRECTORIES: ${{ env.workspace }}/example/test/exclude/directory
+          EXCLUDE_DIRECTORIES: ${{ github.workspace }}/example/test/exclude/directory
           TEST_SHOULD_RUN: "TestSomething"
           TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
-        run: ${{ env.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory ./example/test/exclude/directory
+        run: ${{ github.workspace }}/github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory ./example/test/exclude/directory
       -
         name: Send coverage (Bucket 1)
         uses: shogo82148/actions-goveralls@v1.4.4

@@ -37,7 +37,7 @@ func TestC(t *testing.T) {
    ```go
    func TestMain(m *testing.M) {
        buckets.Buckets(m)
-       m.Run()
+       os.Exit(m.Run())
    }
    ```
 2. Run `EXCLUDE_PACKAGES=package/path/to/exclude,package/path/to/exclude-2 go test -count=1 -v ./...`
