@@ -141,27 +141,25 @@ func subTest(t *testing.T, env []string, coverProfile, packageName string, testS
 		return false
 	}
 
-	testOutput := func(tests []test) {
+	testOutput := func(tests []test) string {
+		var sb strings.Builder
 		for _, o := range tests {
 			if o.Action == "output" {
-				t.Log(o.Output)
+				sb.WriteString(o.Output)
 			}
 		}
+		return sb.String()
 	}
 
 	for _, s := range testShouldRun {
 		if !testRan(allTests, s) {
-			t.Logf("Test `%s' did not run\nOutput:\n", s)
-			testOutput(allTests)
-			t.Fatal()
+			t.Fatalf("Test `%s' did not run\nEnv:\n%s\nOutput:\n", strings.Join(cmd.Env, "\n"), testOutput(allTests))
 		}
 	}
 
 	for _, s := range testShouldNotRun {
 		if testRan(allTests, s) {
-			t.Logf("Test `%s' should not run\nOutput:\n", s)
-			testOutput(allTests)
-			t.Fatal()
+			t.Fatalf("Test `%s' should not run\nEnv:\n%s\nOutput:\n", strings.Join(cmd.Env, "\n"), testOutput(allTests))
 		}
 	}
 }
