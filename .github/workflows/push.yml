@@ -54,47 +54,20 @@ jobs:
         with:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       -
-        name: Test Bucket
-        env:
-          BUCKET: 0
-          TOTAL_BUCKETS: 2
-          TEST_SHOULD_RUN: "TestA;TestA/TestA1;TestA/TestA2;TestB;TestB/TestB1"
-          TEST_SHOULD_NOT_RUN: "TestC;TestC/TestC1"
-        run: ${{ github.workspace }}/.github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
-      -
-        name: Test Bucket
-        env:
-          BUCKET: 1
-          TOTAL_BUCKETS: 2
-          TEST_SHOULD_RUN: "TestC;TestC/TestC1"
-          TEST_SHOULD_NOT_RUN: "TestA;TestA/TestA1;TestA/TestA2;TestB;TestB/TestB1"
-        run: ${{ github.workspace }}/.github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
-      -
-        name: Test Exclude Package
-        env:
-          EXCLUDE_PACKAGES: github.com/Eun/go-test-buckets/example/test/exclude
-          TEST_SHOULD_RUN: "TestSomething"
-          TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
-        run: ${{ github.workspace }}/.github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package ./example/test/exclude/package
-      -
-        name: Test Exclude Directory
-        env:
-          EXCLUDE_DIRECTORIES: ${{ github.workspace }}/example/test/exclude/directory
-          TEST_SHOULD_RUN: "TestSomething"
-          TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
-        run: ${{ github.workspace }}/.github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory ./example/test/exclude/directory
+        name: Test
+        run: go test -v -count=1 ./.
       -
         name: Send coverage (Bucket 1)
         uses: shogo82148/actions-goveralls@v1.4.4
         with:
-          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1.cov
+          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket0.cov
           flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1
           parallel: true
       -
         name: Send coverage (Bucket 2)
         uses: shogo82148/actions-goveralls@v1.4.4
         with:
-          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket2.cov
+          path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1.cov
           flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket2
           parallel: true
       -
