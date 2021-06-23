@@ -55,6 +55,8 @@ jobs:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       -
         name: Test
+        env:
+          COVERAGE_PREFIX: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}
         run: go test -v -count=1 ./.
       -
         name: Send coverage (Bucket 1)

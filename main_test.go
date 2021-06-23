@@ -100,7 +100,8 @@ func TestBuckets(t *testing.T) {
 
 func subTest(t *testing.T, env []string, coverProfile, packageName string, testShouldRun, testShouldNotRun []string) {
 	var buf bytes.Buffer
-	cmd := exec.Command("go", "test", "-v", fmt.Sprintf("-coverprofile=coverage-%s.cov", coverProfile), "-covermode=atomic", "-json", packageName)
+	coverProfile = os.Getenv("COVERAGE_PREFIX") + coverProfile
+	cmd := exec.Command("go", "test", "-v", fmt.Sprintf("-coverprofile=%s.cov", coverProfile), "-covermode=atomic", "-json", packageName)
 	cmd.Stdout = &buf
 	cmd.Stderr = ioutil.Discard
 	cmd.Env = append(os.Environ(), env...)
