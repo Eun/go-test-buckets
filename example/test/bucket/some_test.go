@@ -7,12 +7,6 @@ import (
 	buckets "github.com/Eun/go-test-buckets"
 )
 
-// run with BUCKET=0 TOTAL_BUCKETS=2 go test -count=1 -v ./...
-// will run TestA and TestB
-
-// run with BUCKET=1 TOTAL_BUCKETS=2 go test -count=1 -v ./...
-// will run TestC
-
 func TestMain(m *testing.M) {
 	buckets.Buckets(m)
 	os.Exit(m.Run())

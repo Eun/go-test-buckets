@@ -1,4 +1,5 @@
 #!/bin/bash
+go get -u ./...
 tests=$(go test -v -count=1 -coverprofile="coverage-$1.cov" -covermode=atomic -json $2 | jq -c -s '.[] | select(.Action == "run") | .Test')
 
 IFS=';' read -ra SHOULD_RUN <<< "$TEST_SHOULD_RUN"
