@@ -1,8 +1,6 @@
 #!/bin/bash
 # make sure we get all packages
-go get ./...
-
-tests=$(go test -v -count=1 -coverprofile="coverage-$1.cov" -covermode=atomic -json $2 | jq -c -s '.[] | select(.Action == "run") | .Test')
+tests=$(go test -v -count=1 -coverprofile="coverage-$1.cov" -covermode=atomic -json $2 2>/dev/null | jq -c -s '.[] | select(.Action == "run") | .Test')
 
 IFS=';' read -ra SHOULD_RUN <<< "$TEST_SHOULD_RUN"
 for i in "${SHOULD_RUN[@]}"; do
