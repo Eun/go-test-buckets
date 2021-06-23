@@ -158,6 +158,9 @@ func filterTests(tests *[]testing.InternalTest) {
 				fmt.Printf("unable to find source of %s\n", (*tests)[i].Name)
 				continue
 			}
+			fmt.Println(file)
+			fmt.Printf("%+v\n", directoriesToExcludeList)
+			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 			if isFileInDir(file, directoriesToExcludeList...) {
 				*tests = append((*tests)[:i], (*tests)[i+1:]...)
