@@ -113,9 +113,10 @@ func subTest(t *testing.T, env []string, coverProfile, packageName string, testS
 	type test struct {
 		Action string `json:"Action"`
 		Test   string `json:"Test"`
+		Output string `json:"Output"`
 	}
 
-	var testOutput []test
+	var allTests []test
 
 	dec := json.NewDecoder(strings.NewReader(buf.String()))
 	for {
@@ -129,27 +130,39 @@ func subTest(t *testing.T, env []string, coverProfile, packageName string, testS
 		if err != nil {
 			t.Fatal(err)
 		}
-		testOutput = append(testOutput, testLine)
+		allTests = append(allTests, testLine)
 	}
 
 	testRan := func(tests []test, testName string) bool {
 		for _, o := range tests {
-			if o.Test == testName {
+			if o.Test == testName && o.Action == "run" {
 				return true
 			}
 		}
 		return false
 	}
 
+	testOutput := func(tests []test) {
+		for _, o := range tests {
+			if o.Action == "output" {
+				t.Log(o.Output)
+			}
+		}
+	}
+
 	for _, s := range testShouldRun {
-		if !testRan(testOutput, s) {
-			t.Fatalf("Test `%s' did not run\n", s)
+		if !testRan(allTests, s) {
+			t.Logf("Test `%s' did not run\nOutput:\n", s)
+			testOutput(allTests)
+			t.Fatal()
 		}
 	}
 
 	for _, s := range testShouldNotRun {
-		if testRan(testOutput, s) {
-			t.Fatalf("Test `%s' should not run\n", s)
+		if testRan(allTests, s) {
+			t.Logf("Test `%s' should not run\nOutput:\n", s)
+			testOutput(allTests)
+			t.Fatal()
 		}
 	}
 }

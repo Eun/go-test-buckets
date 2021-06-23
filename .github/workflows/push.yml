@@ -55,7 +55,7 @@ jobs:
         working-directory: /example/test/exclude/directory/
         env:
           EXCLUDE_DIRECTORIES: ${{github.workspace}}\example\test\exclude\directory\should_be_ignored
-        run: go test -count=1 -v ./...
+        run: go test -count=1 -v .
 
 
   # draft your next release notes as pull requests are merged into "master"
