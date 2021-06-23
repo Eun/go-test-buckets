@@ -153,13 +153,13 @@ func subTest(t *testing.T, env []string, coverProfile, packageName string, testS
 
 	for _, s := range testShouldRun {
 		if !testRan(allTests, s) {
-			t.Fatalf("Test `%s' did not run\nEnv:\n%s\nOutput:\n", s, strings.Join(cmd.Env, "\n"), testOutput(allTests))
+			t.Fatalf("Test `%s' did not run\nEnv:\n%s\nOutput:\n%s\n", s, strings.Join(cmd.Env, "\n"), testOutput(allTests))
 		}
 	}
 
 	for _, s := range testShouldNotRun {
 		if testRan(allTests, s) {
-			t.Fatalf("Test `%s' should not run\nEnv:\n%s\nOutput:\n", s, strings.Join(cmd.Env, "\n"), testOutput(allTests))
+			t.Fatalf("Test `%s' should not run\nEnv:\n%s\nOutput:\n%s\n", s, strings.Join(cmd.Env, "\n"), testOutput(allTests))
 		}
 	}
 }
