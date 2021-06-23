@@ -79,7 +79,7 @@ jobs:
       -
         name: Test Exclude Directory
         env:
-          EXCLUDE_DIRECTORIES: ${{ .env.GITHUB_WORKSPACE }}/example/test/exclude/directory
+          EXCLUDE_DIRECTORIES: ${{ env.workspace }}/example/test/exclude/directory
           TEST_SHOULD_RUN: "TestSomething"
           TEST_SHOULD_NOT_RUN: "TestSomethingWillBeExcluded"
         run: ./github/test.sh ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory ./example/test/exclude/directory
