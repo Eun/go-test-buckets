@@ -2,24 +2,16 @@
 package buckets
 
 import (
+	"fmt"
 	"math"
+	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 	"unsafe"
-
-	"strings"
-
-	"fmt"
-
-	"runtime"
-
-	"path/filepath"
-
-	"os"
-
-	"strconv"
-
-	"github.com/agiledragon/gomonkey/v2"
 )
 
 var bucketIndex *int
@@ -30,9 +22,11 @@ var packagesToExclude *string
 var directoriesToExcludeList []string
 var packagesToExcludeList []string
 
-//nolint:gochecknoinits // init function is needed to patch functions
-func init() {
+// Buckets must be called to get the test bucket feature working.
+// It will modify the tests present in the testing.M struct.
+func Buckets(m *testing.M) {
 	if v := os.Getenv("BUCKET"); v != "" {
+		//nolint: gomnd // use 64 bits for parsing
 		n, err := strconv.ParseInt(v, 0, 64)
 		if err != nil {
 			panic(fmt.Sprintf("unable to parse BUCKET %s: %v", v, err))
@@ -42,6 +36,7 @@ func init() {
 	}
 
 	if v := os.Getenv("TOTAL_BUCKETS"); v != "" {
+		//nolint: gomnd // use 64 bits for parsing
 		n, err := strconv.ParseInt(v, 0, 64)
 		if err != nil {
 			panic(fmt.Sprintf("unable to parse BUCKET_COUNT %s: %v", v, err))
@@ -55,13 +50,16 @@ func init() {
 	}
 
 	if v := os.Getenv("EXCLUDE_PACKAGES"); v != "" {
-		directoriesToExclude = &v
+		packagesToExclude = &v
 	}
 
 	if directoriesToExclude != nil {
 		directoriesToExcludeList = strings.FieldsFunc(*directoriesToExclude, func(r rune) bool {
 			return r == ',' || r == ';'
 		})
+		for i := range directoriesToExcludeList {
+			directoriesToExcludeList[i] = filepath.ToSlash(directoriesToExcludeList[i])
+		}
 	}
 	if packagesToExclude != nil {
 		packagesToExcludeList = strings.FieldsFunc(*packagesToExclude, func(r rune) bool {
@@ -73,9 +71,12 @@ func init() {
 		return
 	}
 
-	patchTestRun()
+	v := reflect.ValueOf(m).Elem()
+	testsField := v.FieldByName("tests")
+	//nolint: gosec // allow the usage of unsafe so we can get the test slice.
+	ptr := unsafe.Pointer(testsField.UnsafeAddr())
+	filterTests((*[]testing.InternalTest)(ptr))
 }
-
 func isBucketFeatureEnabled() bool {
 	if bucketCount == nil || bucketIndex == nil {
 		return false
@@ -132,10 +133,10 @@ func isFileInDir(file string, dirs ...string) bool {
 dirLoop:
 	for _, dir := range dirs {
 		fileParts := strings.FieldsFunc(file, func(r rune) bool {
-			return r == filepath.Separator
+			return r == '/'
 		})
 		dirParts := strings.FieldsFunc(dir, func(r rune) bool {
-			return r == filepath.Separator
+			return r == '/'
 		})
 
 		if len(fileParts) < len(dirParts) {
@@ -160,7 +161,8 @@ func filterTests(tests *[]testing.InternalTest) {
 				fmt.Printf("unable to find source of %s\n", (*tests)[i].Name)
 				continue
 			}
-			if isFileInDir(file, directoriesToExcludeList...) {
+
+			if isFileInDir(filepath.ToSlash(file), directoriesToExcludeList...) {
 				*tests = append((*tests)[:i], (*tests)[i+1:]...)
 			}
 		}
@@ -189,18 +191,4 @@ func filterTests(tests *[]testing.InternalTest) {
 
 		*tests = (*tests)[from:to]
 	}
-}
-
-func patchTestRun() {
-	var patches *gomonkey.Patches
-	patches = gomonkey.ApplyMethod(reflect.TypeOf(&testing.M{}), "Run", func(m *testing.M) int {
-		patches.Reset()
-		defer patchTestRun()
-
-		v := reflect.ValueOf(m).Elem()
-		testsField := v.FieldByName("tests")
-		ptr := unsafe.Pointer(testsField.UnsafeAddr()) //nolint:gosec
-		filterTests((*[]testing.InternalTest)(ptr))
-		return m.Run()
-	})
 }
