@@ -82,8 +82,7 @@ func TestBuckets(t *testing.T) {
 		t.Run("Directory", func(t *testing.T) {
 			subTest(t,
 				[]string{
-					//nolint: gocritic // allow filepath.Join with path separator
-					"EXCLUDE_DIRECTORIES=" + filepath.Join(wd, "example/test/exclude/directory/should_be_ignored"),
+					"EXCLUDE_DIRECTORIES=" + filepath.Join(wd, "example", "test", "exclude", "directory", "should_be_ignored"),
 				},
 				"exclude-directory",
 				"./example/test/exclude/directory/...",

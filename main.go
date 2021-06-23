@@ -25,7 +25,6 @@ var packagesToExcludeList []string
 // Buckets must be called to get the test bucket feature working.
 // It will modify the tests present in the testing.M struct.
 func Buckets(m *testing.M) {
-	fmt.Println("OOO")
 	if v := os.Getenv("BUCKET"); v != "" {
 		//nolint: gomnd // use 64 bits for parsing
 		n, err := strconv.ParseInt(v, 0, 64)
@@ -159,9 +158,6 @@ func filterTests(tests *[]testing.InternalTest) {
 				fmt.Printf("unable to find source of %s\n", (*tests)[i].Name)
 				continue
 			}
-			fmt.Println(file)
-			fmt.Printf("%+v\n", directoriesToExcludeList)
-			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 			if isFileInDir(file, directoriesToExcludeList...) {
 				*tests = append((*tests)[:i], (*tests)[i+1:]...)
