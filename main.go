@@ -133,10 +133,10 @@ func isFileInDir(file string, dirs ...string) bool {
 dirLoop:
 	for _, dir := range dirs {
 		fileParts := strings.FieldsFunc(file, func(r rune) bool {
-			return r == filepath.Separator
+			return r == '/'
 		})
 		dirParts := strings.FieldsFunc(dir, func(r rune) bool {
-			return r == filepath.Separator
+			return r == '/'
 		})
 
 		if len(fileParts) < len(dirParts) {

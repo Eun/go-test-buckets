@@ -12,13 +12,14 @@ package main_test
 
 import (
 	"testing"
+	"os"
 
 	"github.com/Eun/go-test-buckets"
 )
 
 func TestMain(m *testing.M) {
 	buckets.Buckets(m)
-	m.Run()
+	os.Exit(m.Run())
 }
 
 // run with BUCKET=0 TOTAL_BUCKETS=2 go test -count=1 -v ./...
