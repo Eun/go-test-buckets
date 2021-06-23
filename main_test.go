@@ -106,7 +106,7 @@ func subTest(t *testing.T, env []string, coverProfile, packageName string, testS
 	cmd.Env = append(os.Environ(), env...)
 
 	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+		t.Fatal(err, buf.String())
 	}
 
 	type test struct {

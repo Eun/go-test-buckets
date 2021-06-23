@@ -17,8 +17,8 @@ import (
 // Buckets must be called to get the test bucket feature working.
 // It will modify the tests present in the testing.M struct.
 func Buckets(m *testing.M) {
-	var bucketIndex *int
-	var bucketCount *int
+	var bucketIndex int
+	var bucketCount int
 
 	var directoriesToExclude []string
 	var packagesToExclude []string
@@ -29,8 +29,7 @@ func Buckets(m *testing.M) {
 		if err != nil {
 			panic(fmt.Sprintf("unable to parse BUCKET %s: %v", v, err))
 		}
-		i := int(n)
-		bucketIndex = &i
+		bucketIndex = int(n)
 	}
 
 	if v := os.Getenv("TOTAL_BUCKETS"); v != "" {
@@ -39,8 +38,7 @@ func Buckets(m *testing.M) {
 		if err != nil {
 			panic(fmt.Sprintf("unable to parse BUCKET_COUNT %s: %v", v, err))
 		}
-		i := int(n)
-		bucketCount = &i
+		bucketCount = int(n)
 	}
 
 	if v := os.Getenv("EXCLUDE_DIRECTORIES"); v != "" {
@@ -58,7 +56,7 @@ func Buckets(m *testing.M) {
 		})
 	}
 
-	if bucketIndex == nil && bucketCount == nil && len(directoriesToExclude) == 0 && len(packagesToExclude) == 0 {
+	if (bucketCount == 0 || bucketIndex >= bucketCount) && (len(directoriesToExclude) == 0 && len(packagesToExclude) == 0) {
 		return
 	}
 
@@ -66,7 +64,7 @@ func Buckets(m *testing.M) {
 	testsField := v.FieldByName("tests")
 	//nolint: gosec // allow the usage of unsafe so we can get the test slice.
 	ptr := unsafe.Pointer(testsField.UnsafeAddr())
-	filterTests((*[]testing.InternalTest)(ptr), *bucketIndex, *bucketCount, directoriesToExclude, packagesToExclude)
+	filterTests((*[]testing.InternalTest)(ptr), bucketIndex, bucketCount, directoriesToExclude, packagesToExclude)
 }
 
 func getSourceFile(f func(*testing.T)) string {
@@ -126,8 +124,8 @@ dirLoop:
 	return false
 }
 
-func filterTests(tests *[]testing.InternalTest, bucketIndex, bucketCount int, directoriesToExcludeList []string, packagesToExcludeList []string) {
-	if len(directoriesToExcludeList) > 0 {
+func filterTests(tests *[]testing.InternalTest, bucketIndex, bucketCount int, directoriesToExclude, packagesToExclude []string) {
+	if len(directoriesToExclude) > 0 {
 		for i := len(*tests) - 1; i >= 0; i-- {
 			file := getSourceFile((*tests)[i].F)
 			if file == "" {
@@ -135,19 +133,19 @@ func filterTests(tests *[]testing.InternalTest, bucketIndex, bucketCount int, di
 				continue
 			}
 
-			if isFileInDir(filepath.ToSlash(file), directoriesToExcludeList...) {
+			if isFileInDir(filepath.ToSlash(file), directoriesToExclude...) {
 				*tests = append((*tests)[:i], (*tests)[i+1:]...)
 			}
 		}
 	}
-	if len(packagesToExcludeList) > 0 {
+	if len(packagesToExclude) > 0 {
 		for i := len(*tests) - 1; i >= 0; i-- {
 			pkg := getPackageName((*tests)[i].F)
 			if pkg == "" {
 				fmt.Printf("unable to find package of %s\n", (*tests)[i].Name)
 				continue
 			}
-			if isFileInDir(pkg, packagesToExcludeList...) {
+			if isFileInDir(pkg, packagesToExclude...) {
 				*tests = append((*tests)[:i], (*tests)[i+1:]...)
 			}
 		}
