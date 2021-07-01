@@ -155,6 +155,10 @@ func filterTests(tests *[]testing.InternalTest, bucketIndex, bucketCount int, di
 		perBucket := int(math.Ceil(float64(len(*tests)) / float64(bucketCount)))
 
 		from := bucketIndex * perBucket
+		if from >= len(*tests) { // out of bounds
+			*tests = (*tests)[:0]
+			return
+		}
 		to := from + perBucket
 
 		if to > len(*tests)-1 {
