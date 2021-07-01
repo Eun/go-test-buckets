@@ -184,6 +184,12 @@ func Test_filterTestsBuckets(t *testing.T) {
 			[]int{1, 0},
 		},
 		{
+			"1/3",
+			1,
+			3,
+			[]int{1, 0, 0},
+		},
+		{
 			"3/2",
 			3,
 			2,
