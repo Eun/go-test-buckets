@@ -27,7 +27,7 @@ jobs:
       -
         uses: actions/checkout@v3
       -
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
       # we cannot use nancy-github-action because it is outdated, so it's better to use the latest
       # docker image for the validation
       -
@@ -47,7 +47,7 @@ jobs:
         uses: Eun/go-mod-details@v1.0.4
         id: go-mod-details
       - name: Install Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       - name: Test
