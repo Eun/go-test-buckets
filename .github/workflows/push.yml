@@ -44,7 +44,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Get go.mod details
-        uses: Eun/go-mod-details@v1.0.4
+        uses: Eun/go-mod-details@v1.0.6
         id: go-mod-details
       - name: Install Go
         uses: actions/setup-go@v3
