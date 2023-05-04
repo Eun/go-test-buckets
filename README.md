@@ -53,6 +53,43 @@ func TestC(t *testing.T) {
 
 > Because of `go test` package separation, you have to call `buckets.Buckets(m)` in every package you want to ignore.
 
-# Why?
+## Why?
 Speed up ci pipelines by parallelizing go tests without thinking about [t.Parallel](https://golang.org/pkg/testing/#T.Parallel).
 And getting rid of weird piping `go test $(go list ./... | grep -v /ignore/)`
+
+
+## Extra Github Actions
+You can use following github action when using test buckets:
+```yaml
+on:
+  push:
+
+name: "push"
+jobs:
+  test:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+        bucket: [0, 1, 2, 3]
+    env:
+        TOTAL_BUCKETS: 4
+    runs-on: ${{ matrix.platform }}
+    steps:
+      -
+        name: Checkout code
+        uses: actions/checkout@v3.5.2
+      -
+        name: Get go.mod details
+        uses: Eun/go-mod-details@v1.0.6
+        id: go-mod-details
+      -
+        name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ steps.go-mod-details.outputs.go_version }}
+      -
+        name: Test
+        run: go test -v -count=1 ./...
+        env:
+          BUCKET: ${{ matrix.bucket }}
+```
