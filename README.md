@@ -89,7 +89,7 @@ jobs:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       -
         name: Test
-        run: go test -v -count=1 -parallel=1 -coverprofile="coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}.cov" -covermode=atomic ./...
+        run: go test -v -count=1 ./...
         env:
           BUCKET: ${{ matrix.bucket }}
 ```
