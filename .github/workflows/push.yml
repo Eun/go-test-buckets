@@ -55,25 +55,25 @@ jobs:
           COVERAGE_PREFIX: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-
         run: go test -v -count=1
       - name: Send coverage (Bucket 1)
-        uses: shogo82148/actions-goveralls@v1.7.0
+        uses: shogo82148/actions-goveralls@v1.8.0
         with:
           path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket0.cov
           flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1
           parallel: true
       - name: Send coverage (Bucket 2)
-        uses: shogo82148/actions-goveralls@v1.7.0
+        uses: shogo82148/actions-goveralls@v1.8.0
         with:
           path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket1.cov
           flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-bucket2
           parallel: true
       - name: Send coverage (Exclude Package)
-        uses: shogo82148/actions-goveralls@v1.7.0
+        uses: shogo82148/actions-goveralls@v1.8.0
         with:
           path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package.cov
           flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-package
           parallel: true
       - name: Send coverage (Exclude Directory)
-        uses: shogo82148/actions-goveralls@v1.7.0
+        uses: shogo82148/actions-goveralls@v1.8.0
         with:
           path-to-profile: coverage-${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory.cov
           flag-name: ${{ matrix.platform }}-${{ steps.go-mod-details.outputs.go_version }}-exclude-directory
@@ -84,7 +84,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: shogo82148/actions-goveralls@v1.7.0
+      - uses: shogo82148/actions-goveralls@v1.8.0
         with:
           parallel-finished: true
 
